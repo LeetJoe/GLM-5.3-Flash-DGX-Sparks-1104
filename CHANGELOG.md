@@ -1,5 +1,10 @@
 # Changelog
 
+- **2026-11-20 (fixes)** -- Engine patches -, found and verified on the 2x RTX PRO 6000 recipe with the same engine pin () and patch stack; not yet run on a GB10 pair, rebuild the image to pick them up:
+  -  DFlash2 selector: a draft row with NaN or -inf logits returned the kernel's no-winner id , which the host used to index the successor codebook and crashed the server. Ids outside the vocabulary are skipped now.
+  -   on the page pool: the sparse token lists were written as BF16 page rows but read as positions by the E4M3 kernel, so prompts past  (2,048 keys) attended the wrong rows (issue #64).
+  -   with DFlash2: the target MTP head's prompt rows were written through the key pages' table and stride instead of the latent pages' own, overwriting other layers' E4M3 scales, so decode after a prompt longer than about 768 tokens returned token 0. A sharded cache's latent rows are now written and read through the latent table everywhere.
+
 - **2026-11-20** -- Updated `TF_REF` from `f350cd3e` to `81de26f6` (TensorFold `1.3.0`) and ported the 13-patch stack (`0001`–`0013`, including `0013` for `KV_SHARD=1`):
   - **Faster GLM decode launches:** Programmatic Dependent Launches (PDL) for GLM CUDA kernels and `qmmf` decode linears cut launch gaps between decode steps (`TF_GLM_PDL=0` to disable).
   - **Upstreamed GLM CUDA & DFlash2 stack:** Paged E4M3 latent KV caches, grouped-experts load-ahead (`sm_120+`), fused MoE decode glue, `TF_GLM_ABSORB_MMA=1`, `TF_GLM_CE_EXCHANGE=1`, two-rank gather, DFlash2 window/copy-drafting rules, and shared sampling (`cuda.sample.rule`) are now built into upstream `1.3.0`.

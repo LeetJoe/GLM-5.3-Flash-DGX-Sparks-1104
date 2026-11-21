@@ -240,8 +240,8 @@ build_env_args() {
   [[ -z "$PREFILL_BUDGET" ]] || ENV_ARGS+=(-e "TENSORFOLD_PREFILL_BUDGET=$PREFILL_BUDGET")
   # CACHE_FIRST=1: engine patch 0112 sets PROMPT_CACHE_GIB aside before the streams' windows (every rank alike)
   [[ "$CACHE_FIRST" != 1 ]] || ENV_ARGS+=(-e "TF_PROMPT_CACHE_FIRST=1")
-  # L2PF=1: engine patch 0117 prefetches each decode window's next weights into L2 (every rank must agree)
-  [[ "$L2PF" != 1 ]] || ENV_ARGS+=(-e "TF_GLM_L2PF=1")
+  # L2PF: each decode window's next weights read into L2 (every rank must agree). Named either way: unset is on on GB10
+  ENV_ARGS+=(-e "TF_GLM_L2PF=$L2PF")
   # EXTRA_EOS: engine patch 0120 ends a reply at these tokens too (every rank alike)
   [[ "$EXTRA_EOS" == none ]] || ENV_ARGS+=(-e "TF_EXTRA_EOS=$EXTRA_EOS")
   # THINK_OFF_SPLIT: engine patch 0121 moves a thinking-off draft closed by </think> into reasoning_content

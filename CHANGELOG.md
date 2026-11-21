@@ -1,5 +1,12 @@
 # Changelog
 
+- **2026-11-21** -- `L2PF` defaults to `1` and is always passed to the ranks: on TensorFold 1.3.0 an unset
+  `TF_GLM_L2PF` means on for a GB10 (`cuda_l2pf.zig`), so every 1.3.0 start already prefetched and `L2PF=0` could not
+  turn it off (`TF_GLM_L2PF` is recipe-managed, so exporting it did not help either). Serving is unchanged at the
+  default; `L2PF=0` now passes `TF_GLM_L2PF=0`. `scripts/tests/l2pf-env.sh` checks both launchers. wojo's numbers in
+  issue #54 (+2.2-2.7% at one stream and +1.1% at four with `KV_SHARD=1`, measured on the earlier stack) are in the
+  README row.
+
 - **2026-11-21 (docs)** -- README, "The effort line": `/v1/models` reports `default_effort: "xhigh"` outside
   `supported_efforts`, and `xhigh` requests still work (issue #50); thinking off is best-effort on very long prompts,
   with thinking on as the fix for the 619,938-token case (issue #32), plus a troubleshooting row.

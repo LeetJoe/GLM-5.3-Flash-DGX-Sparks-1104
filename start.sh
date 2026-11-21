@@ -211,8 +211,8 @@ build_env_args() {
   [[ "$CACHE_FIRST" != 1 ]] || ENV_ARGS+=(-e "TF_PROMPT_CACHE_FIRST=1")
   # KV_SHARD=1: engine patch 0114 keeps each stream's latent rows on its owner rank (both ranks must agree)
   [[ "$KV_SHARD" != 1 ]] || ENV_ARGS+=(-e "TF_GLM_KV_SHARD=1")
-  # L2PF=1: engine patch 0117 prefetches each decode window's next weights into L2 (both ranks must agree)
-  [[ "$L2PF" != 1 ]] || ENV_ARGS+=(-e "TF_GLM_L2PF=1")
+  # L2PF: each decode window's next weights read into L2 (both ranks must agree). Named either way: unset is on on GB10
+  ENV_ARGS+=(-e "TF_GLM_L2PF=$L2PF")
   # EXTRA_EOS: engine patch 0120 ends a reply at these tokens too (both ranks alike)
   [[ "$EXTRA_EOS" == none ]] || ENV_ARGS+=(-e "TF_EXTRA_EOS=$EXTRA_EOS")
   # THINK_OFF_SPLIT: engine patch 0121 moves a thinking-off draft closed by </think> into reasoning_content

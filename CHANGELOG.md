@@ -1,5 +1,9 @@
 # Changelog
 
+- **2026-11-21 (docs)** -- README, "The effort line": `/v1/models` reports `default_effort: "xhigh"` outside
+  `supported_efforts`, and `xhigh` requests still work (issue #50); thinking off is best-effort on very long prompts,
+  with thinking on as the fix for the 619,938-token case (issue #32), plus a troubleshooting row.
+
 - **2026-11-20 (fixes)** -- Engine patches `0014`-`0016`, found and verified on the 2x RTX PRO 6000 recipe with the same engine pin (`81de26f6`) and patch stack; not yet run on a GB10 pair, rebuild the image to pick them up:
   - `0014` DFlash2 selector: a draft row with NaN or -inf logits returned the kernel's no-winner id `0x7fffffff`, which the host used to index the successor codebook and crashed the server. Ids outside the vocabulary are skipped now.
   - `0015` `KV=fp8` on the page pool: the sparse token lists were written as BF16 page rows but read as positions by the E4M3 kernel, so prompts past `index_topk` (2,048 keys) attended the wrong rows (issue #64).

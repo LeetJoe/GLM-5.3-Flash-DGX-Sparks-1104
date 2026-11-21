@@ -312,6 +312,17 @@ Measured with sparkDash's quality suite (greedy, 755 items): with the line in ev
 v0.6.0's 84.0% and MMLU 91.2%; with `EFFORT_LINE=thinking`, QA 86.0% (140 of 150 replies byte-identical to v0.6.0's)
 and MMLU 88.4%, thinking-on categories unchanged.
 
+`GET /v1/models` lists `supported_efforts` as the levels the template names in quotes (`max`, `high`, `low`), while
+`default_effort` is the configured `REASONING_EFFORT` as given, so the default `xhigh` is reported outside that list
+(issue #50). Requests with `reasoning_effort: "xhigh"` or no effort work: the engine passes `xhigh` through and the
+template renders it as the `Reasoning Effort: Max` line. A client that checks the default against the list should
+accept `xhigh`.
+
+Thinking off (the default here) is a best-effort mode on very long prompts: a 619,938-token retrieval over numeric
+filler returned repeated `</think>` and a prompt echo with thinking off on both checkpoints, with drafts on or off and
+`KV_SHARD` 0 or 1, and the right answer with thinking on (issue #32). For long-context work, send
+`enable_thinking: true` or start with `THINKING=1`.
+
 ## Engine patches
 
 `patches/engine/` holds 121 patches on TensorFold `f350cd3e`, applied in filename order at image build: 0001-0093 are
@@ -594,6 +605,7 @@ only ever stops containers labelled `tf.recipe=glm53-spark`.
 | A reply ends with `<\|assistant\|>` followed by the same answer again, `finish_reason: length` | The checkpoint's EOS list leaves out `<\|assistant\|>`. Keep `EXTRA_EOS` at its default (`<\|assistant\|>`) |
 | With thinking off, `content` starts with a draft ("We need ...") and holds `</think>` | The model reasoned anyway. Set `THINK_OFF_SPLIT=1024` (off by default) so the draft goes to `reasoning_content`; raise it if the draft is longer |
 | A thinking-off reply works the sum out in its answer and `finish_reason` is `length` on a short `max_tokens` | The prompt carries the template's `Reasoning Effort: Max` line (`EFFORT_LINE=always`, or a `CHAT_TEMPLATE` of your own); `EFFORT_LINE=thinking` (default) writes it with thinking on only. `/tokenize` on a one-line user message shows it: 7 tokens more |
+| A thinking-off reply to a prompt of several hundred thousand tokens repeats `</think>` and echoes the prompt | Thinking off is best-effort on very long prompts; send that request with thinking on (see [The effort line](#the-effort-line), issue #32) |
 | `[E_FABRIC]` | No directly reached address, or no RoCE v2 GID holding an IPv4 on the link's port: cable the Sparks on one subnet, or set `FABRIC_PEER` / `NCCL_IB_GID_INDEX` |
 | `[W_FABRIC]` a rail left out | The second rail does not carry a full-size ping; check the cable, the twin's address and MTU |
 | `[E_MEMORY]`, `[E_PORT]` | Less than `MIN_AVAIL_GIB` available (another rank, usually), or a port in use |
